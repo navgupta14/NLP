@@ -62,7 +62,7 @@ class NaiveBayes:
     maxProbability = -sys.maxint -1
     final_klass = 'foo'
     for klass in self.klassesCount:
-      class_probab[klass] = math.log((( 0.0 + self.klassesCount[klass] )/ self.totalDocs), 10)
+      class_probab[klass] = math.log((( 0.0 + self.klassesCount[klass])/ self.totalDocs), 10)
       for word in words:
         num = self.klassWordCount[(klass, word)] + 1
         if self.BOOLEAN_NB:
@@ -88,30 +88,13 @@ class NaiveBayes:
     """
     if self.BOOLEAN_NB:
       words = set(words)
-
     self.totalDocs += 1
-    if klass in self.klassesCount:
-      self.klassesCount[klass] += 1
-    else:
-      self.klassesCount[klass] = 1
-
+    self.klassesCount[klass] += 1
     for word in words:
       self.vocab.add(word)
+      self.klassTotalWordsCount[klass] += 1
+      self.klassWordCount[((klass, word))] += 1
 
-      if klass in self.klassTotalWordsCount:
-        self.klassTotalWordsCount[klass] += 1
-      else:
-        self.klassTotalWordsCount[klass] = 1
-
-      if (klass, word) in self.klassWordCount:
-        self.klassWordCount[(klass, word)] += 1
-      else:
-        self.klassWordCount[(klass, word)] = 1
-
-    # Write code here
-
-    pass
-      
 
   # END TODO (Modify code beyond here with caution)
   #############################################################################

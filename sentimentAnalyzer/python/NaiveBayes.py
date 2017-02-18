@@ -3,6 +3,7 @@ import getopt
 import os
 import math
 import operator
+from collections import defaultdict
 
 class NaiveBayes:
   class TrainSplit:
@@ -27,6 +28,11 @@ class NaiveBayes:
     self.BOOLEAN_NB = False
     self.stopList = set(self.readFile('../data/english.stop'))
     self.numFolds = 10
+    self.klassesCount = defaultdict(lambda : 0.0)
+    self.totalDocs = 0
+    self.vocab = set()
+    self.klassTotalWordsCount = defaultdict(lambda : 0.0)
+    self.klassWordCount = defaultdict(lambda : 0.0)
 
   #############################################################################
   # TODO TODO TODO TODO TODO 
@@ -44,12 +50,31 @@ class NaiveBayes:
     """ TODO
       'words' is a list of words to classify. Return 'pos' or 'neg' classification.
     """
+
     if self.FILTER_STOP_WORDS:
       words =  self.filterStopWords(words)
 
-    # Write code here
+    if self.BOOLEAN_NB:
+      words = set(words)
 
-    return 'pos'
+    # Write code here
+    class_probab = {}
+    maxProbability = -sys.maxint -1
+    final_klass = 'foo'
+    for klass in self.klassesCount:
+      class_probab[klass] = math.log((( 0.0 + self.klassesCount[klass] )/ self.totalDocs), 10)
+      for word in words:
+        num = self.klassWordCount[(klass, word)] + 1
+        if self.BOOLEAN_NB:
+          den = self.klassesCount[klass]
+        else:
+          den = self.klassTotalWordsCount[klass] + len(self.vocab) + 1
+        class_probab[klass] += math.log(((0.0 + num)/ den), 10)
+      if class_probab[klass] > maxProbability:
+        maxProbability = class_probab[klass]
+        final_klass = klass
+
+    return final_klass
   
 
   def addExample(self, klass, words):
@@ -61,7 +86,27 @@ class NaiveBayes:
      * in the NaiveBayes class.
      * Returns nothing
     """
+    if self.BOOLEAN_NB:
+      words = set(words)
 
+    self.totalDocs += 1
+    if klass in self.klassesCount:
+      self.klassesCount[klass] += 1
+    else:
+      self.klassesCount[klass] = 1
+
+    for word in words:
+      self.vocab.add(word)
+
+      if klass in self.klassTotalWordsCount:
+        self.klassTotalWordsCount[klass] += 1
+      else:
+        self.klassTotalWordsCount[klass] = 1
+
+      if (klass, word) in self.klassWordCount:
+        self.klassWordCount[(klass, word)] += 1
+      else:
+        self.klassWordCount[(klass, word)] = 1
 
     # Write code here
 
@@ -159,17 +204,20 @@ def test10Fold(args, FILTER_STOP_WORDS, BOOLEAN_NB):
   avgAccuracy = 0.0
   fold = 0
   for split in splits:
+    #print "split : "  + str(split)
     classifier = NaiveBayes()
     classifier.FILTER_STOP_WORDS = FILTER_STOP_WORDS
     classifier.BOOLEAN_NB = BOOLEAN_NB
     accuracy = 0.0
     for example in split.train:
+      #print "example : " + str(example) + "  klass : " + str(example.klass)
       words = example.words
       classifier.addExample(example.klass, words)
   
     for example in split.test:
       words = example.words
       guess = classifier.classify(words)
+      #print "test example : " + str(example) + "  klass : " + str(guess)
       if example.klass == guess:
         accuracy += 1.0
 
@@ -206,7 +254,7 @@ def main():
     FILTER_STOP_WORDS = True
   elif ('-b','') in options:
     BOOLEAN_NB = True
-  
+
   if len(args) == 2:
     classifyDir(FILTER_STOP_WORDS, BOOLEAN_NB,  args[0], args[1])
   elif len(args) == 1:

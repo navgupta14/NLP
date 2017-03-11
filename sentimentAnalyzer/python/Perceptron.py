@@ -118,7 +118,7 @@ class Perceptron:
         self.initialize_parameters()
         N = len(split.train)
         c = 1
-        num_iters = 100
+        num_iters = iterations
         for i in range(0, num_iters):
             for n in range(0, N):
                 input = self.training_inputs[n]

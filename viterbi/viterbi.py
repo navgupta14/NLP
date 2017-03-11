@@ -12,7 +12,7 @@ def parse_probabilities(prob_file):
     with open(prob_file) as f:
         for line in f:
             parts = line.split()
-            probabilities[parts[0]][parts[1]] = float(parts[2])
+            probabilities[(parts[0]).lower()][(parts[1]).lower()] = float(parts[2])
 
 def gen_tags(words):
     feasible_tags = {}
@@ -85,6 +85,7 @@ def main():
     parse_probabilities(args[0])
     with open(args[1]) as test_file:
         for line in test_file:
+            line = line.lower()
             viterbi(line)
             forward(line)
 if __name__ == "__main__":
